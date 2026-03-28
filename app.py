@@ -112,10 +112,10 @@ html, body,
 /* ── INPUTS ── */
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea {
-    background: rgba(255,255,255,0.6) !important;
+    background: #ffffff !important;          /* always white, not grey */
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
-    color: var(--text) !important;
+    color: #1d1d1f !important;               /* typed text always black */
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.95rem !important;
     font-weight: 400 !important;
@@ -127,16 +127,28 @@ html, body,
     border-color: var(--accent) !important;
     box-shadow: 0 0 0 3px rgba(0,113,227,0.12) !important;
     outline: none !important;
-    background: #fff !important;
+    background: #ffffff !important;
 }
 .stTextInput > div > div > input::placeholder,
 .stTextArea > div > div > textarea::placeholder {
-    color: #b0b0b5 !important;
+    color: #b0b0b5 !important;               /* placeholder stays grey */
     font-weight: 300 !important;
+    opacity: 1 !important;
 }
 /* Hide default labels (use label_visibility="collapsed" in Python too) */
 .stTextInput label,
 .stTextArea label { display: none !important; }
+
+/* ── FILE UPLOADER text — black ── */
+[data-testid="stFileUploader"] > section > div,
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] span,
+[data-testid="stFileUploader"] p {
+    color: #1d1d1f !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 400 !important;
+}
 
 /* ── NUMBER INPUT ── */
 [data-testid="stNumberInput"] input {
@@ -430,15 +442,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── JOB DESCRIPTION ──────────────────────────────────────────
-# Render the card label + tabs + inputs all inside one visual card via CSS class on a wrapping div.
-# We use a single st.markdown for the opening card (with label), then let Streamlit render
-# native widgets below it, then close with a styled bottom-margin div.
-# The card background is applied via a container CSS trick on the block wrapper.
-
-st.markdown("""
-<div class="hiq-card-label" style="margin-bottom:0.75rem;">Role</div>
-""", unsafe_allow_html=True)
-
 jd_tab1, jd_tab2 = st.tabs(["✏️  Write", "📄  Upload"])
 jd_dict = None
 
@@ -474,10 +477,6 @@ with jd_tab2:
             st.error(str(e))
 
 # ── RESUMES ───────────────────────────────────────────────────
-st.markdown("""
-<div class="hiq-card-label" style="margin-top:1.5rem; margin-bottom:0.75rem;">Candidates</div>
-""", unsafe_allow_html=True)
-
 uploaded_resumes = st.file_uploader(
     "Drop resumes here",
     type=["pdf", "docx", "txt"],
