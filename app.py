@@ -138,8 +138,43 @@ html, body,
 .stTextInput label,
 .stTextArea label { display: none !important; }
 
+/* ── NUMBER INPUT ── */
+[data-testid="stNumberInput"] input {
+    background: rgba(255,255,255,0.6) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    padding: 0.7rem 1rem !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+[data-testid="stNumberInput"] input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.12) !important;
+    outline: none !important;
+    background: #fff !important;
+}
+[data-testid="stNumberInput"] label {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    color: var(--subtext) !important;
+}
+[data-testid="stNumberInput"] button {
+    background: rgba(0,0,0,0.04) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 6px !important;
+    color: var(--text) !important;
+    transition: background 0.15s !important;
+}
+[data-testid="stNumberInput"] button:hover {
+    background: rgba(0,113,227,0.08) !important;
+    border-color: var(--accent) !important;
+}
+
 /* ── TABS ── */
-/* Updated selectors for current Streamlit versions */
 .stTabs [role="tablist"] {
     background: rgba(0,0,0,0.05) !important;
     border-radius: 10px !important;
@@ -151,26 +186,40 @@ html, body,
 .stTabs [role="tab"] {
     background: transparent !important;
     border-radius: 8px !important;
+    border: none !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.18s ease !important;
+    opacity: 1 !important;           /* Streamlit sets opacity on inactive tabs */
+}
+/* Target the actual text node inside the tab button */
+.stTabs [role="tab"] p,
+.stTabs [role="tab"] div,
+.stTabs [role="tab"] span {
     color: var(--subtext) !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.85rem !important;
     font-weight: 500 !important;
-    padding: 0.45rem 1.1rem !important;
-    border: none !important;
-    transition: all 0.18s ease !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 .stTabs [role="tab"][aria-selected="true"] {
     background: #ffffff !important;
-    color: var(--text) !important;
     box-shadow: 0 1px 6px rgba(0,0,0,0.1) !important;
 }
-/* Remove the default bottom-border indicator Streamlit adds */
+.stTabs [role="tab"][aria-selected="true"] p,
+.stTabs [role="tab"][aria-selected="true"] div,
+.stTabs [role="tab"][aria-selected="true"] span {
+    color: var(--text) !important;
+    font-weight: 600 !important;
+}
+/* Remove default blue underline indicator */
 .stTabs [role="tab"][aria-selected="true"]::after,
-.stTabs [data-baseweb="tab-highlight"] {
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"] {
     display: none !important;
+    height: 0 !important;
 }
 .stTabs [data-baseweb="tab-panel"] { padding: 0 !important; }
-.stTabs [data-baseweb="tab-border"] { display: none !important; }
 
 /* ── FILE UPLOADER ── */
 [data-testid="stFileUploader"] > section {
@@ -194,10 +243,6 @@ html, body,
 [data-testid="stFileUploader"] > label { display: none !important; }
 
 /* ── BUTTON ── */
-/* Scope full-width only to the main CTA, not buttons inside columns */
-[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] .stButton > button {
-    width: auto !important;
-}
 .stButton > button {
     background: var(--accent) !important;
     color: #fff !important;
@@ -205,9 +250,11 @@ html, body,
     border-radius: 980px !important;
     font-family: 'DM Sans', sans-serif !important;
     font-weight: 500 !important;
-    font-size: 0.95rem !important;
+    font-size: 0.88rem !important;
     letter-spacing: 0.01em !important;
-    padding: 0.75rem 2.2rem !important;
+    padding: 0.55rem 1.6rem !important;   /* smaller: reduced padding */
+    width: auto !important;               /* never stretch full-width */
+    min-width: 0 !important;
     transition: background 0.2s, transform 0.15s, box-shadow 0.2s !important;
     box-shadow: 0 2px 12px rgba(0,113,227,0.28) !important;
     cursor: pointer !important;
@@ -383,68 +430,77 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── JOB DESCRIPTION ──────────────────────────────────────────
-# NOTE: Streamlit strips unclosed HTML tags injected via st.markdown.
-# Wrap content in a single self-contained div per st.markdown call.
-st.markdown('<div class="hiq-card"><div class="hiq-card-label">Role</div></div>',
-            unsafe_allow_html=True)
+# Render the card label + tabs + inputs all inside one visual card via CSS class on a wrapping div.
+# We use a single st.markdown for the opening card (with label), then let Streamlit render
+# native widgets below it, then close with a styled bottom-margin div.
+# The card background is applied via a container CSS trick on the block wrapper.
 
-with st.container():
-    jd_tab1, jd_tab2 = st.tabs(["Write", "Upload"])
-    jd_dict = None
+st.markdown("""
+<div class="hiq-card-label" style="margin-bottom:0.75rem;">Role</div>
+""", unsafe_allow_html=True)
 
-    with jd_tab1:
-        job_title = st.text_input(
-            "title",
-            placeholder="Job title  —  e.g. Senior Product Designer",
-            label_visibility="collapsed"
-        )
-        jd_input = st.text_area(
-            "jd",
-            height=150,
-            placeholder="Describe the role — skills required, responsibilities, experience level...",
-            label_visibility="collapsed"
-        )
-        if jd_input.strip():
-            jd_dict = {"title": job_title.strip() or "Open Role", "raw_text": jd_input.strip()}
+jd_tab1, jd_tab2 = st.tabs(["✏️  Write", "📄  Upload"])
+jd_dict = None
 
-    with jd_tab2:
-        jd_file = st.file_uploader(
-            "Upload job description",
-            type=["txt", "json"],
-            label_visibility="collapsed"
-        )
-        if jd_file:
-            with tempfile.NamedTemporaryFile(delete=False,
-                    suffix=os.path.splitext(jd_file.name)[-1]) as tmp:
-                tmp.write(jd_file.read())
-            try:
-                jd_dict = parse_job_description(tmp.name)
-                st.success(f"Loaded — {jd_file.name}")
-            except Exception as e:
-                st.error(str(e))
-
-# ── RESUMES ───────────────────────────────────────────────────
-st.markdown('<div class="hiq-card"><div class="hiq-card-label">Candidates</div></div>',
-            unsafe_allow_html=True)
-
-with st.container():
-    uploaded_resumes = st.file_uploader(
-        "Drop resumes here",
-        type=["pdf", "docx", "txt"],
-        accept_multiple_files=True,
+with jd_tab1:
+    job_title = st.text_input(
+        "title",
+        placeholder="Job title  —  e.g. Senior Product Designer",
         label_visibility="collapsed"
     )
-    if uploaded_resumes:
-        st.caption(f"{len(uploaded_resumes)} resume{'s' if len(uploaded_resumes) > 1 else ''} ready to screen")
+    jd_input = st.text_area(
+        "jd",
+        height=150,
+        placeholder="Describe the role — skills required, responsibilities, experience level...",
+        label_visibility="collapsed"
+    )
+    if jd_input.strip():
+        jd_dict = {"title": job_title.strip() or "Open Role", "raw_text": jd_input.strip()}
+
+with jd_tab2:
+    jd_file = st.file_uploader(
+        "Upload job description",
+        type=["txt", "json"],
+        label_visibility="collapsed"
+    )
+    if jd_file:
+        with tempfile.NamedTemporaryFile(delete=False,
+                suffix=os.path.splitext(jd_file.name)[-1]) as tmp:
+            tmp.write(jd_file.read())
+        try:
+            jd_dict = parse_job_description(tmp.name)
+            st.success(f"Loaded — {jd_file.name}")
+        except Exception as e:
+            st.error(str(e))
+
+# ── RESUMES ───────────────────────────────────────────────────
+st.markdown("""
+<div class="hiq-card-label" style="margin-top:1.5rem; margin-bottom:0.75rem;">Candidates</div>
+""", unsafe_allow_html=True)
+
+uploaded_resumes = st.file_uploader(
+    "Drop resumes here",
+    type=["pdf", "docx", "txt"],
+    accept_multiple_files=True,
+    label_visibility="collapsed"
+)
+if uploaded_resumes:
+    st.caption(f"{len(uploaded_resumes)} resume{'s' if len(uploaded_resumes) > 1 else ''} ready to screen")
 
 # ── CONTROLS ─────────────────────────────────────────────────
+st.markdown("<div style='margin-top:1.5rem;'></div>", unsafe_allow_html=True)
 col_a, col_b = st.columns([1, 2])
 with col_a:
-    top_n = st.slider("Shortlist size", 1, 20, 5)
+    top_n = st.number_input(
+        "Shortlist size",
+        min_value=1,
+        max_value=40,
+        value=5,
+        step=1,
+    )
 with col_b:
-    # Push button down to align with slider vertically
-    st.markdown("<div style='padding-top: 1.75rem;'></div>", unsafe_allow_html=True)
-    run_btn = st.button("Screen Candidates →", use_container_width=True)
+    st.markdown("<div style='padding-top: 1.9rem;'></div>", unsafe_allow_html=True)
+    run_btn = st.button("Screen Candidates →")
 
 # ── PIPELINE ─────────────────────────────────────────────────
 if run_btn:
