@@ -1,6 +1,4 @@
 streamlit
 google-genai
-pymupdf
+pymupdf==1.23.8
 python-docx
-sentence-transformers
-torch

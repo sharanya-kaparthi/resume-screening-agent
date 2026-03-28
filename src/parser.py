@@ -1,13 +1,13 @@
 import os
 import json
-import fitz           # PyMuPDF for PDFs
-import docx           # python-docx for Word files
 
 def extract_text_from_pdf(path: str) -> str:
+    import pymupdf as fitz
     doc = fitz.open(path)
     return "\n".join(page.get_text() for page in doc).strip()
 
 def extract_text_from_docx(path: str) -> str:
+    import docx
     doc = docx.Document(path)
     return "\n".join(p.text for p in doc.paragraphs if p.text.strip()).strip()
 
@@ -16,9 +16,7 @@ def extract_text_from_txt(path: str) -> str:
         return f.read().strip()
 
 def parse_resume(path: str) -> dict:
-    """Parse any resume file into a structured dict."""
     ext = os.path.splitext(path)[-1].lower()
-
     if ext == ".pdf":
         raw_text = extract_text_from_pdf(path)
     elif ext in (".docx", ".doc"):
@@ -30,7 +28,6 @@ def parse_resume(path: str) -> dict:
 
     filename = os.path.basename(path)
     candidate_id = os.path.splitext(filename)[0]
-
     return {
         "id": candidate_id,
         "filename": filename,
@@ -38,9 +35,7 @@ def parse_resume(path: str) -> dict:
     }
 
 def parse_job_description(path: str) -> dict:
-    """Load a job description from a .txt or .json file."""
     ext = os.path.splitext(path)[-1].lower()
-
     if ext == ".json":
         with open(path) as f:
             return json.load(f)
@@ -51,7 +46,6 @@ def parse_job_description(path: str) -> dict:
         raise ValueError(f"Unsupported JD format: {ext}")
 
 def load_all_resumes(folder: str = "data/resumes") -> list[dict]:
-    """Load every resume file in a folder."""
     supported = (".pdf", ".docx", ".doc", ".txt")
     resumes = []
     for filename in os.listdir(folder):
