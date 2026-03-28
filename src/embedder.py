@@ -1,49 +1,34 @@
 import os
-import time
-import requests
 import numpy as np
+from google import genai
 
-def get_hf_key() -> str:
+def get_gemini_key() -> str:
     try:
         import streamlit as st
-        return st.secrets["HF_API_KEY"]
+        return st.secrets["GEMINI_API_KEY"]
     except Exception:
-        from dotenv import load_dotenv
-        load_dotenv()
-        return os.getenv("HF_API_KEY")
+        key = os.getenv("GEMINI_API_KEY")
+        if not key:
+            with open(".env") as f:
+                for line in f:
+                    if line.startswith("GEMINI_API_KEY"):
+                        key = line.strip().split("=", 1)[1].strip().strip('"')
+        return key
 
-EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-
-def get_embeddings(texts: list[str], retries: int = 5) -> list[list[float]]:
-    HF_API_KEY = get_hf_key()
-    HEADERS = {"Authorization": f"Bearer {HF_API_KEY}"}
-
-    # ✅ New correct endpoint
-    url = f"https://api-inference.huggingface.co/models/{EMBED_MODEL}"
-
-    for attempt in range(retries):
-        response = requests.post(url, headers=HEADERS, json={
-            "inputs": texts,
-            "options": {"wait_for_model": True}
-        })
-
-        if response.status_code == 200:
-            result = response.json()
-            # New API returns nested list — flatten if needed
-            if isinstance(result[0][0], list):
-                result = [r[0] for r in result]
-            return result
-
-        if response.status_code in (503, 429):
-            wait = 20 * (attempt + 1)
-            print(f"⏳ Model loading or rate limited, retrying in {wait}s...")
-            time.sleep(wait)
-        else:
-            response.raise_for_status()
-
-    raise RuntimeError("HuggingFace embedding model failed after retries.")
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Get embeddings using Google Gemini (new google-genai package)."""
+    client = genai.Client(api_key=get_gemini_key())
+    embeddings = []
+    for text in texts:
+        result = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=text
+        )
+        embeddings.append(result.embeddings[0].values)
+    return embeddings
 
 def embed_texts(texts: list[str], batch_size: int = 8) -> np.ndarray:
+    """Embed texts in batches to stay within rate limits."""
     all_embeddings = []
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
