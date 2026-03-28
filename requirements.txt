@@ -2,3 +2,5 @@ streamlit
 google-genai
 PyMuPDF
 python-docx
+scikit-learn
+numpy
