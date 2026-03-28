@@ -150,6 +150,36 @@ html, body,
     font-weight: 400 !important;
 }
 
+/* ── FILE UPLOADER browse button ── */
+[data-testid="stFileUploaderDropzone"] button,
+[data-testid="stFileUploader"] button {
+    background: #1d1d1f !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 980px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 1.4rem !important;
+    transition: transform 0.2s cubic-bezier(.22,1,.36,1), box-shadow 0.2s !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+    cursor: pointer !important;
+}
+[data-testid="stFileUploaderDropzone"] button *,
+[data-testid="stFileUploader"] button * {
+    color: #ffffff !important;
+}
+[data-testid="stFileUploaderDropzone"] button:hover,
+[data-testid="stFileUploader"] button:hover {
+    background: #1d1d1f !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.22) !important;
+}
+[data-testid="stFileUploaderDropzone"] button:active,
+[data-testid="stFileUploader"] button:active {
+    transform: translateY(0) !important;
+}
+
 /* ── NUMBER INPUT ── */
 [data-testid="stNumberInput"] input {
     background: rgba(255,255,255,0.6) !important;
