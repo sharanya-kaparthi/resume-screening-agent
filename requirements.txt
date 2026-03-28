@@ -1,2 +1,6 @@
 streamlit
 google-genai
+pymupdf
+python-docx
+sentence-transformers
+torch
