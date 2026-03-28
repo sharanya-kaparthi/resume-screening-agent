@@ -34,8 +34,10 @@ html, body,
     color: var(--text) !important;
 }
 
+/* ── HIDE CHROME ── */
 [data-testid="stHeader"],
 [data-testid="stDecoration"],
+[data-testid="stToolbar"],
 #MainMenu, footer { display: none !important; visibility: hidden !important; }
 
 [data-testid="stSidebar"] { display: none !important; }
@@ -77,6 +79,7 @@ html, body,
 }
 
 /* ── GLASS CARD ── */
+/* Use isolation instead of overflow:hidden so backdrop-filter works */
 .hiq-card {
     background: var(--surface);
     backdrop-filter: blur(20px) saturate(180%);
@@ -85,9 +88,9 @@ html, body,
     border-radius: var(--radius);
     padding: 2rem 2.25rem;
     margin-bottom: 1.25rem;
-    animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1) both;
     box-shadow: 0 2px 24px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
     transition: box-shadow 0.3s ease;
+    isolation: isolate;
 }
 .hiq-card:hover {
     box-shadow: 0 4px 32px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.06);
@@ -100,6 +103,11 @@ html, body,
     color: var(--subtext);
     margin-bottom: 1.1rem;
 }
+
+/* Staggered card animation */
+.hiq-card:nth-child(1) { animation: fadeUp 0.7s 0.05s cubic-bezier(.22,1,.36,1) both; }
+.hiq-card:nth-child(2) { animation: fadeUp 0.7s 0.15s cubic-bezier(.22,1,.36,1) both; }
+.hiq-card:nth-child(3) { animation: fadeUp 0.7s 0.25s cubic-bezier(.22,1,.36,1) both; }
 
 /* ── INPUTS ── */
 .stTextInput > div > div > input,
@@ -126,18 +134,21 @@ html, body,
     color: #b0b0b5 !important;
     font-weight: 300 !important;
 }
-.stTextInput label, .stTextArea label { display: none !important; }
+/* Hide default labels (use label_visibility="collapsed" in Python too) */
+.stTextInput label,
+.stTextArea label { display: none !important; }
 
 /* ── TABS ── */
-.stTabs [data-baseweb="tab-list"] {
-    background: rgba(0,0,0,0.04) !important;
+/* Updated selectors for current Streamlit versions */
+.stTabs [role="tablist"] {
+    background: rgba(0,0,0,0.05) !important;
     border-radius: 10px !important;
     padding: 3px !important;
     gap: 2px !important;
-    border: none !important;
+    border-bottom: none !important;
     margin-bottom: 1.25rem !important;
 }
-.stTabs [data-baseweb="tab"] {
+.stTabs [role="tab"] {
     background: transparent !important;
     border-radius: 8px !important;
     color: var(--subtext) !important;
@@ -148,38 +159,45 @@ html, body,
     border: none !important;
     transition: all 0.18s ease !important;
 }
-.stTabs [aria-selected="true"] {
+.stTabs [role="tab"][aria-selected="true"] {
     background: #ffffff !important;
     color: var(--text) !important;
     box-shadow: 0 1px 6px rgba(0,0,0,0.1) !important;
 }
+/* Remove the default bottom-border indicator Streamlit adds */
+.stTabs [role="tab"][aria-selected="true"]::after,
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none !important;
+}
 .stTabs [data-baseweb="tab-panel"] { padding: 0 !important; }
+.stTabs [data-baseweb="tab-border"] { display: none !important; }
 
 /* ── FILE UPLOADER ── */
-[data-testid="stFileUploader"] {
+[data-testid="stFileUploader"] > section {
     background: rgba(255,255,255,0.5) !important;
-    border: 1.5px dashed rgba(0,0,0,0.12) !important;
+    border: 1.5px dashed rgba(0,0,0,0.14) !important;
     border-radius: var(--radius-sm) !important;
     padding: 1.5rem !important;
     transition: border-color 0.2s, background 0.2s !important;
 }
-[data-testid="stFileUploader"]:hover {
+[data-testid="stFileUploader"] > section:hover {
     border-color: var(--accent) !important;
     background: rgba(0,113,227,0.03) !important;
 }
-[data-testid="stFileUploader"] label,
-[data-testid="stFileUploaderDropzoneInstructions"] {
+[data-testid="stFileUploader"] > section > div {
     color: var(--subtext) !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.88rem !important;
     font-weight: 400 !important;
 }
-[data-testid="stFileUploaderDropzone"] {
-    background: transparent !important;
-    border: none !important;
-}
+/* Hide the outer label that Streamlit auto-generates for file uploader */
+[data-testid="stFileUploader"] > label { display: none !important; }
 
 /* ── BUTTON ── */
+/* Scope full-width only to the main CTA, not buttons inside columns */
+[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] .stButton > button {
+    width: auto !important;
+}
 .stButton > button {
     background: var(--accent) !important;
     color: #fff !important;
@@ -190,7 +208,6 @@ html, body,
     font-size: 0.95rem !important;
     letter-spacing: 0.01em !important;
     padding: 0.75rem 2.2rem !important;
-    width: 100% !important;
     transition: background 0.2s, transform 0.15s, box-shadow 0.2s !important;
     box-shadow: 0 2px 12px rgba(0,113,227,0.28) !important;
     cursor: pointer !important;
@@ -220,10 +237,16 @@ html, body,
 }
 
 /* ── SLIDER ── */
-.stSlider > div > div > div > div {
+/* Correct selector path for Streamlit slider track fill */
+[data-testid="stSlider"] [data-testid="stThumbValue"],
+[data-testid="stSlider"] [role="slider"] {
+    color: var(--accent) !important;
+}
+[data-testid="stSlider"] > div > div > div:nth-child(2) > div {
     background: var(--accent) !important;
 }
-.stSlider label {
+.stSlider label,
+[data-testid="stSlider"] label {
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.82rem !important;
     font-weight: 500 !important;
@@ -238,6 +261,7 @@ html, body,
     padding: 1.35rem 1.5rem !important;
     box-shadow: 0 1px 8px rgba(0,0,0,0.04) !important;
 }
+[data-testid="stMetricLabel"] > div,
 [data-testid="stMetricLabel"] {
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.72rem !important;
@@ -246,15 +270,19 @@ html, body,
     text-transform: uppercase !important;
     color: var(--subtext) !important;
 }
+[data-testid="stMetricValue"] > div,
 [data-testid="stMetricValue"] {
     font-family: 'DM Serif Display', serif !important;
     font-size: 2rem !important;
     color: var(--text) !important;
     line-height: 1.1 !important;
 }
+/* Remove the metric delta arrow if unused */
+[data-testid="stMetricDelta"] { display: none !important; }
 
 /* ── EXPANDER ── */
-.streamlit-expanderHeader {
+details > summary,
+[data-testid="stExpander"] summary {
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
@@ -265,11 +293,12 @@ html, body,
     padding: 1rem 1.25rem !important;
     transition: background 0.2s !important;
     margin-bottom: 0.5rem !important;
+    list-style: none !important;
 }
-.streamlit-expanderHeader:hover {
+[data-testid="stExpander"] summary:hover {
     background: rgba(255,255,255,0.9) !important;
 }
-.streamlit-expanderContent {
+[data-testid="stExpander"] > div[data-testid="stExpanderDetails"] {
     background: rgba(255,255,255,0.6) !important;
     border: 1px solid var(--border) !important;
     border-top: none !important;
@@ -278,18 +307,20 @@ html, body,
 }
 
 /* ── PROGRESS ── */
-.stProgress > div > div > div {
-    background: var(--accent) !important;
-    border-radius: 99px !important;
-}
-.stProgress > div > div {
+[data-testid="stProgressBar"] > div {
     background: rgba(0,0,0,0.06) !important;
     border-radius: 99px !important;
     height: 4px !important;
+    overflow: hidden !important;
+}
+[data-testid="stProgressBar"] > div > div {
+    background: var(--accent) !important;
+    border-radius: 99px !important;
 }
 
 /* ── STATUS ── */
-[data-testid="stStatusWidget"] {
+[data-testid="stStatusWidget"],
+.stStatus {
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
@@ -297,12 +328,29 @@ html, body,
     font-size: 0.85rem !important;
 }
 
-/* ── ALERT ── */
-.stAlert {
+/* ── ALERT — keep borders for accessibility, just restyle ── */
+[data-testid="stAlert"] {
     border-radius: var(--radius-sm) !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.88rem !important;
-    border: none !important;
+    border-left-width: 3px !important;   /* keep left indicator, drop full border */
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+}
+
+/* ── CAPTION ── */
+[data-testid="stCaptionContainer"],
+.stCaption {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.8rem !important;
+    color: var(--subtext) !important;
+}
+
+/* ── CODE BLOCK ── */
+[data-testid="stCode"] {
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.82rem !important;
 }
 
 /* ── SECTION TITLE ── */
@@ -313,6 +361,15 @@ html, body,
     color: var(--text);
     margin: 2.5rem 0 1rem 0;
     letter-spacing: -0.01em;
+}
+
+/* ── COLUMN GAP FIX — Streamlit adds overflow:hidden to col wrappers ── */
+[data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    gap: 1rem !important;
+}
+[data-testid="column"] {
+    overflow: visible !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -326,58 +383,68 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── JOB DESCRIPTION ──────────────────────────────────────────
-st.markdown('<div class="hiq-card">', unsafe_allow_html=True)
-st.markdown('<div class="hiq-card-label">Role</div>', unsafe_allow_html=True)
+# NOTE: Streamlit strips unclosed HTML tags injected via st.markdown.
+# Wrap content in a single self-contained div per st.markdown call.
+st.markdown('<div class="hiq-card"><div class="hiq-card-label">Role</div></div>',
+            unsafe_allow_html=True)
 
-jd_tab1, jd_tab2 = st.tabs(["Write", "Upload"])
-jd_dict = None
+with st.container():
+    jd_tab1, jd_tab2 = st.tabs(["Write", "Upload"])
+    jd_dict = None
 
-with jd_tab1:
-    job_title = st.text_input("title", placeholder="Job title  —  e.g. Senior Product Designer",
-        label_visibility="collapsed")
-    jd_input = st.text_area("jd", height=150,
-        placeholder="Describe the role — skills required, responsibilities, experience level...",
-        label_visibility="collapsed")
-    if jd_input.strip():
-        jd_dict = {"title": job_title.strip() or "Open Role", "raw_text": jd_input.strip()}
+    with jd_tab1:
+        job_title = st.text_input(
+            "title",
+            placeholder="Job title  —  e.g. Senior Product Designer",
+            label_visibility="collapsed"
+        )
+        jd_input = st.text_area(
+            "jd",
+            height=150,
+            placeholder="Describe the role — skills required, responsibilities, experience level...",
+            label_visibility="collapsed"
+        )
+        if jd_input.strip():
+            jd_dict = {"title": job_title.strip() or "Open Role", "raw_text": jd_input.strip()}
 
-with jd_tab2:
-    jd_file = st.file_uploader("Upload job description", type=["txt", "json"],
-        label_visibility="collapsed")
-    if jd_file:
-        with tempfile.NamedTemporaryFile(delete=False,
-                suffix=os.path.splitext(jd_file.name)[-1]) as tmp:
-            tmp.write(jd_file.read())
-        try:
-            jd_dict = parse_job_description(tmp.name)
-            st.success(f"Loaded — {jd_file.name}")
-        except Exception as e:
-            st.error(str(e))
-
-st.markdown('</div>', unsafe_allow_html=True)
+    with jd_tab2:
+        jd_file = st.file_uploader(
+            "Upload job description",
+            type=["txt", "json"],
+            label_visibility="collapsed"
+        )
+        if jd_file:
+            with tempfile.NamedTemporaryFile(delete=False,
+                    suffix=os.path.splitext(jd_file.name)[-1]) as tmp:
+                tmp.write(jd_file.read())
+            try:
+                jd_dict = parse_job_description(tmp.name)
+                st.success(f"Loaded — {jd_file.name}")
+            except Exception as e:
+                st.error(str(e))
 
 # ── RESUMES ───────────────────────────────────────────────────
-st.markdown('<div class="hiq-card">', unsafe_allow_html=True)
-st.markdown('<div class="hiq-card-label">Candidates</div>', unsafe_allow_html=True)
+st.markdown('<div class="hiq-card"><div class="hiq-card-label">Candidates</div></div>',
+            unsafe_allow_html=True)
 
-uploaded_resumes = st.file_uploader(
-    "Drop resumes here",
-    type=["pdf", "docx", "txt"],
-    accept_multiple_files=True,
-    label_visibility="collapsed"
-)
-if uploaded_resumes:
-    st.caption(f"{len(uploaded_resumes)} resume{'s' if len(uploaded_resumes) > 1 else ''} ready to screen")
-
-st.markdown('</div>', unsafe_allow_html=True)
+with st.container():
+    uploaded_resumes = st.file_uploader(
+        "Drop resumes here",
+        type=["pdf", "docx", "txt"],
+        accept_multiple_files=True,
+        label_visibility="collapsed"
+    )
+    if uploaded_resumes:
+        st.caption(f"{len(uploaded_resumes)} resume{'s' if len(uploaded_resumes) > 1 else ''} ready to screen")
 
 # ── CONTROLS ─────────────────────────────────────────────────
 col_a, col_b = st.columns([1, 2])
 with col_a:
     top_n = st.slider("Shortlist size", 1, 20, 5)
 with col_b:
-    st.markdown("<div style='height:1.6rem'></div>", unsafe_allow_html=True)
-    run_btn = st.button("Screen Candidates →")
+    # Push button down to align with slider vertically
+    st.markdown("<div style='padding-top: 1.75rem;'></div>", unsafe_allow_html=True)
+    run_btn = st.button("Screen Candidates →", use_container_width=True)
 
 # ── PIPELINE ─────────────────────────────────────────────────
 if run_btn:
@@ -401,8 +468,10 @@ if run_btn:
                 resumes.append(parsed)
             except Exception as e:
                 st.write(f"Skipped {f.name}: {e}")
-        status.update(label=f"{len(resumes)} resume{'s' if len(resumes)>1 else ''} parsed",
-            state="complete")
+        status.update(
+            label=f"{len(resumes)} resume{'s' if len(resumes) > 1 else ''} parsed",
+            state="complete"
+        )
 
     if not resumes:
         st.error("No resumes could be read. Try plain text or PDF files.")
